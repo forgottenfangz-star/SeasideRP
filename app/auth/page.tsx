@@ -29,9 +29,9 @@ export default function AuthPage() {
       <section className="auth-card">
         <div className="auth-head">
           <Image src="/kivi-cad-logo.webp" alt="Kiwi CAD" width={58} height={58} priority />
-          <span className="auth-kicker">KIWI CAD · SYDNEY RP</span>
+          <span className="auth-kicker">KIWI CAD · SEASIDERP</span>
           <h1>Enter Kiwi CAD</h1>
-          <p>Your CAD account is built around your Discord and Roblox identities. No email or password.</p>
+          <p>Your public Kiwi CAD account is built around your Discord and Roblox identities. No email or password.</p>
         </div>
 
         <div className="identity-stack">
@@ -55,6 +55,7 @@ export default function AuthPage() {
         </div>
 
         {message && <div className="auth-error">{message}</div>}
+        <div className="origin-note"><b>Built for SeasideRP.</b><span>Kiwi CAD is now a public platform for roleplay communities.</span></div>
         <a className="back-home" href="/">← Back to Kiwi CAD</a>
       </section>
     </main>
