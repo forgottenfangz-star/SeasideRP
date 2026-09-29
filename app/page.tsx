@@ -1,0 +1,3 @@
+import Link from "next/link";
+
+export default function Home(){return <main className="shell"><nav><strong>SEASIDE<span>RP</span></strong><div><Link href="/character">Character</Link><Link href="/licences">Licences</Link><Link href="/records">Records</Link></div></nav><section className="hero"><p className="eyebrow">SYDNEY / NEW SOUTH WALES</p><h1>Your roleplay identity.<br/><span>Your records.</span></h1><p className="muted">A persistent roleplay CAD built around your character, licences, vehicles and public-safety records.</p><div className="actions"><Link className="button" href="/character">Create character</Link><Link className="button secondary" href="/licences">View licences</Link></div></section></main>}
