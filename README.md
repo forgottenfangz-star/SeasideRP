@@ -11,3 +11,6 @@ Sydney/NSW roleplay CAD and records platform.
 - Server-side authorization
 
 No fake production data or placeholder functionality is treated as finished.
+
+
+<!-- Vercel deployment trigger -->
