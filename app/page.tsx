@@ -11,7 +11,9 @@ const nav = [
   ["Vehicles", "▱"],
   ["Records", "▤"],
   ["Businesses", "⌂"],
+  ["Phone", "◈"],
   ["Market", "◇"],
+  ["Communities", "◎"],
 ];
 
 export default function Home() {
@@ -28,7 +30,7 @@ export default function Home() {
         <p className="side-label">CAD</p>
         <nav className="side-nav">
           {nav.map(([label, icon]) => (
-            <Link href={label === "Overview" ? "/" : "/" + label.toLowerCase()} key={label}
+            <Link href={label === "Overview" ? "/" : label === "Communities" ? "/organizations" : "/" + label.toLowerCase()} key={label}
               className={active === label ? "side-link active" : "side-link"} onClick={() => setActive(label)}>
               <i>{icon}</i><span>{label}</span>
             </Link>
