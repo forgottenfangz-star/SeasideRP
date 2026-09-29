@@ -1,0 +1,24 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function admin(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!url||!key)throw new Error("Server integration is not configured.");return createAdminClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}});}
+function authorized(req:NextRequest){const expected=process.env.KIWI_DISCORD_SYNC_SECRET;const provided=req.headers.get("authorization")?.replace(/^Bearer\s+/i,"");return !!expected&&provided===expected;}
+
+export async function POST(req:NextRequest){
+ if(!authorized(req)) return NextResponse.json({error:"Unauthorized"},{status:401});
+ try{
+  const body=await req.json() as {organization_id:string;guild_id:string;discord_user_id:string;discord_role_ids:string[]};
+  if(!body.organization_id||!body.guild_id||!body.discord_user_id||!Array.isArray(body.discord_role_ids)) return NextResponse.json({error:"Invalid payload"},{status:400});
+  const db=admin();
+  const {data:profile}=await db.from("profiles").select("id").eq("discord_id",body.discord_user_id).single();
+  if(!profile) return NextResponse.json({error:"Discord user is not linked to a Kiwi CAD profile"},{status:404});
+  const {data:membership}=await db.from("organization_memberships").select("id").eq("organization_id",body.organization_id).eq("user_id",profile.id).eq("status","active").single();
+  if(!membership) return NextResponse.json({error:"User is not an active organization member"},{status:404});
+  const {data:mappings}=await db.from("discord_role_mappings").select("discord_role_id,role_id").eq("organization_id",body.organization_id).eq("discord_guild_id",body.guild_id).eq("sync_enabled",true);
+  const mapped=(mappings??[]).filter(m=>body.discord_role_ids.includes(m.discord_role_id));
+  await db.from("organization_member_roles").delete().eq("membership_id",membership.id);
+  if(mapped.length) await db.from("organization_member_roles").insert(mapped.map(m=>({membership_id:membership.id,role_id:m.role_id})));
+  await db.from("audit_logs").insert({organization_id:body.organization_id,action:"discord.roles.synced",category:"discord",target_type:"profile",target_id:profile.id,metadata:{discord_user_id:body.discord_user_id,role_count:mapped.length}});
+  return NextResponse.json({ok:true,assigned_role_ids:mapped.map(m=>m.role_id)});
+ }catch(e){return NextResponse.json({error:e instanceof Error?e.message:"Sync failed"},{status:500});}
+}
