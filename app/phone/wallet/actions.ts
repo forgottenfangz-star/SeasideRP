@@ -1,0 +1,4 @@
+"use server";
+import {createClient} from "@/lib/supabase/server";
+import {revalidatePath} from "next/cache";
+export async function transferAud(formData:FormData){const db=await createClient();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error("Sign in first.");const {data:org}=await db.from("organizations").select("id").eq("slug","seaside-rp").single();if(!org)throw new Error("Organization not found.");const recipient=String(formData.get("recipient")||"").trim();const amount=Math.round(Number(formData.get("amount")||0)*100);const note=String(formData.get("note")||"").trim()||null;if(!recipient||amount<=0)throw new Error("Recipient and amount are required.");const {error}=await db.rpc("transfer_virtual_aud",{target_org:org.id,recipient,amount_cents:amount,note});if(error)throw new Error(error.message);revalidatePath("/phone/wallet");revalidatePath("/phone");}
