@@ -1,0 +1,11 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function StaffLogsPage() {
+  const supabase = await createClient();
+  const { data: user } = await supabase.auth.getUser();
+  const { data: org } = await supabase.from("organizations").select("id,name").eq("slug","seaside-rp").maybeSingle();
+  const { data: logs } = org && user.user ? await supabase.from("audit_logs").select("id,action,category,target_type,target_label,created_at").eq("organization_id",org.id).order("created_at",{ascending:false}).limit(50) : {data:[]};
+
+  return <main className="cad-app"><aside className="sidebar"><Link href="/staff" className="cad-brand"><strong>KIWI</strong><span>CAD</span></Link><div className="server-chip"><span className="online-dot"/><div><small>SERVER</small><b>SeasideRP</b></div></div><p className="side-label">STAFF</p><nav className="side-nav"><Link href="/staff" className="side-link"><i>◆</i><span>Staff</span></Link><Link href="/staff/logs" className="side-link active"><i>▤</i><span>Audit Logs</span></Link><Link href="/staff/roles" className="side-link"><i>◆</i><span>Roles & Permissions</span></Link></nav></aside><section className="workspace"><header className="workspace-top"><div><span className="crumb">KIWI CAD / SEASIDERP / STAFF / LOGS</span><h1>Audit Logs</h1></div><Link href="/staff" className="profile-button">Staff</Link></header><div className="content"><section className="panel"><div className="panel-head"><div><span className="panel-kicker">SECURITY</span><h3>Organization audit history</h3></div><span className="badge green">LIVE DATA</span></div>{logs?.length ? <div className="quick-list">{logs.map((log:any)=><div key={log.id} style={{display:"flex",justifyContent:"space-between",gap:20,padding:"14px 0",borderBottom:"1px solid rgba(255,255,255,.06)"}}><div><b>{log.action}</b><small style={{display:"block"}}>{log.category}{log.target_label ? " · "+log.target_label : ""}</small></div><small>{new Date(log.created_at).toLocaleString("en-AU")}</small></div>)}</div> : <div className="empty-state"><div className="empty-icon">▤</div><h4>No audit events yet</h4><p>Permission-sensitive organization actions will appear here once staff activity begins.</p></div>}</section></div></section></main>;
+}
