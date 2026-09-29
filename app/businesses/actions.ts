@@ -1,0 +1,6 @@
+"use server";
+import {createClient} from "@/lib/supabase/server";
+import {revalidatePath} from "next/cache";
+const ORG_SLUG="seaside-rp";
+async function orgId(){const db=await createClient();const {data}=await db.from("organizations").select("id").eq("slug",ORG_SLUG).single();if(!data)throw new Error("Organization not found.");return data.id;}
+export async function hireEmployee(formData:FormData){const db=await createClient();const id=await orgId();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error("Sign in first.");const businessId=String(formData.get("businessId")||"");const employeeUserId=String(formData.get("employeeUserId")||"").trim();const title=String(formData.get("jobTitle")||"Employee").trim();const wage=Math.max(0,Math.round(Number(formData.get("wage")||0)*100));const {data:business}=await db.from("businesses").select("id").eq("id",businessId).eq("organization_id",id).eq("owner_user_id",user.id).single();if(!business)throw new Error("You do not own that business.");const {error}=await db.from("business_employees").upsert({business_id:businessId,user_id:employeeUserId,job_title:title,wage_cents:wage,status:"active"},{onConflict:"business_id,user_id"});if(error)throw new Error(error.message);revalidatePath("/businesses");}
