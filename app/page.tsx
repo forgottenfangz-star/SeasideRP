@@ -24,7 +24,7 @@ export default function Home() {
           <Image src="/kivi-cad-logo.webp" alt="Kiwi CAD" width={38} height={38} priority />
           <div><strong>KIWI</strong><span>CAD</span></div>
         </Link>
-        <div className="server-chip"><span className="online-dot" /><div><small>SERVER</small><b>Sydney Roleplay</b></div></div>
+        <div className="server-chip"><span className="online-dot" /><div><small>SERVER</small><b>SeasideRP</b></div></div>
         <p className="side-label">CAD</p>
         <nav className="side-nav">
           {nav.map(([label, icon]) => (
@@ -44,13 +44,13 @@ export default function Home() {
 
       <section className="workspace">
         <header className="workspace-top">
-          <div><span className="crumb">KIWI CAD /</span><h1>Overview</h1></div>
+          <div><span className="crumb">KIWI CAD / SEASIDERP</span><h1>Overview</h1></div>
           <div className="top-actions"><button className="icon-button">⌕</button><button className="icon-button">◌</button><Link href="/auth" className="profile-button"><span>K</span> Account</Link></div>
         </header>
 
         <div className="content">
           <section className="welcome">
-            <div><p className="eyebrow">SYDNEY · NEW SOUTH WALES</p><h2>Your roleplay command centre.</h2><p>Everything attached to your character, in one place.</p></div>
+            <div><p className="eyebrow">SEASIDERP · SYDNEY · NEW SOUTH WALES</p><h2>Your roleplay command centre.</h2><p>Everything attached to your character, in one place.</p></div>
             <div className="welcome-mark"><Image src="/kivi-cad-logo.webp" alt="" width={76} height={76} /></div>
           </section>
 
