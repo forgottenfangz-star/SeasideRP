@@ -57,7 +57,6 @@ create index characters_name_idx on public.characters(full_name);
 create index demerits_character_idx on public.demerit_entries(character_id);
 create index licences_character_idx on public.character_licences(character_id);
 
--- Seed configurable licence types. Eligibility is based on character age, not a waiting/processing timer.
 insert into public.licence_types(name,description,minimum_character_age_minutes) values
 ('Driver Licence','Road vehicle licence',0),
 ('Fishing Licence','Fishing licence',15),
@@ -65,3 +64,63 @@ insert into public.licence_types(name,description,minimum_character_age_minutes)
 ('Hunting Licence','Hunting licence',0),
 ('Firearms Licence','Firearms licence; server can require review',0)
 on conflict (name) do nothing;
+
+-- Create a profile automatically whenever a Supabase Auth user is created.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id) values (new.id)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute procedure public.handle_new_user();
+
+-- Row-level security: users can only access their own account/character data.
+alter table public.profiles enable row level security;
+alter table public.characters enable row level security;
+alter table public.licence_types enable row level security;
+alter table public.character_licences enable row level security;
+alter table public.demerit_entries enable row level security;
+
+create policy "profiles_select_own" on public.profiles
+for select using (id = auth.uid());
+
+create policy "profiles_update_own" on public.profiles
+for update using (id = auth.uid()) with check (id = auth.uid());
+
+create policy "characters_select_own" on public.characters
+for select using (user_id = auth.uid());
+
+create policy "characters_insert_own" on public.characters
+for insert with check (user_id = auth.uid());
+
+create policy "characters_update_own" on public.characters
+for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+create policy "licence_types_read_enabled" on public.licence_types
+for select using (enabled = true);
+
+create policy "character_licences_select_own" on public.character_licences
+for select using (
+  exists (
+    select 1 from public.characters c
+    where c.id = character_id and c.user_id = auth.uid()
+  )
+);
+
+create policy "demerits_select_own" on public.demerit_entries
+for select using (
+  exists (
+    select 1 from public.characters c
+    where c.id = character_id and c.user_id = auth.uid()
+  )
+);
